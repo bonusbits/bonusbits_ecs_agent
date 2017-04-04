@@ -557,7 +557,10 @@ Resources:
             03_download_cookbook:
               cwd: /opt/chef-repo/cookbooks
               command: !Sub "git clone --branch ${CookbookVersion} https://github.com/bonusbits/${CookbookName}.git"
-            04_deploy_databags:
+            04_berkshelf_cookbooks:
+              cwd: !Sub /opt/chef-repo/cookbooks/${CookbookName}
+              command: !Sub "berks vendor /opt/chef-repo/cookbooks/"
+            05_deploy_databags:
               cwd: /opt/chef-repo
               command: !Sub "cp -R cookbooks/${CookbookName}/test/data_bags/${CookbookName} data_bags/"
           files:
