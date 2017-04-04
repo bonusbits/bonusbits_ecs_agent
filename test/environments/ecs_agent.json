@@ -8,9 +8,8 @@
     },
     "override_attributes": {
         "bonusbits_base": {
-            "aws": {
-                "stack_name": "bonusbits-ecs-cluster-kitchen",
-                "logs_group_name": "bonusbits-ecs-cluster-kitchen"
+            "cloudwatch_logs": {
+                "logs_group_name": "kitchen-bonusbits-ecs-cluster"
             }
         },
         "bonusbits_ecs_cluster": {

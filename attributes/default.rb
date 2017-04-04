@@ -1,6 +1,10 @@
 # Deployment Type
 default['bonusbits_ecs_cluster']['deployment_type'] = 'ec2'
 
+# Bonusbits Base
+default['bonusbits_base']['aws']['inside'] = true
+default['bonusbits_base']['cloudwatch_logs']['deploy_logs_conf'] = false
+
 # Debug
 message_list = [
   '',
