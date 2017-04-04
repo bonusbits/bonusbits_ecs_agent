@@ -1,0 +1,81 @@
+---
+
+driver:
+  name: ec2
+  associate_public_ip: <%= ENV['AWS_PUBLIC_IP'] %>
+  aws_ssh_key_id: <%= ENV['AWS_SSH_KEY_ID'] %>
+  security_group_ids:
+  <% (1..5).collect { |n| ENV["AWS_SECURITY_GROUP_#{n}"] }.compact.each do |secgroup| %>
+    - <%= secgroup %>
+  <% end %>
+  subnet_id: <%= ENV['AWS_SUBNET'] %>
+  vpc_id: <%= ENV['AWS_VPC_ID'] %>
+  iam_profile_name: <%= ENV['AWS_IAM_INSTANCE_PROFILE_2'] %>
+  region: <%= ENV['AWS_REGION'] %>
+  instance_type: t2.small
+
+transport:
+  username: ec2-user
+  ssh_key: <%= ENV['AWS_SSH_KEY_PATH'] %>
+
+provisioner:
+  name: chef_zero
+  require_chef_omnibus: 12.18.31
+  data_bags_path: test/data_bags
+  encrypted_data_bag_secret_key_path: test/data_bags/encrypted_data_bag_secret
+  roles_path: test/roles
+  environments_path: test/environments
+
+verifier:
+  name: inspec
+#  format: doc
+#  format: junit
+#  output: test/inspec/results/%{platform}_%{suite}_inspec.xml
+#  output: $CIRCLE_TEST_REPORTS/inspec/results/%{platform}_%{suite}_inspec.xml
+
+platforms:
+  - name: amazon
+    driver:
+      image_search:
+        owner-id: 137112412989
+        name: amzn-ami-hvm-2016.*x86_64-gp2
+      tags:
+        Name: kitchen-bonusbits-ecs-agent-amznlnx-<%= ENV['USER'] %>
+        Created-By: Test Kitchen
+        Owner: <%= ENV['USER'] %>
+  - name: rhel6
+    driver:
+      image_search:
+        owner-id: 309956199498
+        name: RHEL-6.*_HVM_GA-*-x86_64
+      tags:
+        Name: kitchen-bonusbits-ecs-agent-rhel6-<%= ENV['USER'] %>
+        Created-By: Test Kitchen
+        Owner: <%= ENV['USER'] %>
+  - name: rhel7
+    driver:
+      image_search:
+        owner-id: 309956199498
+        name: RHEL-7.*_HVM_GA-*-x86_64
+      tags:
+        Name: kitchen-bonusbits-ecs-agent-rhel6-<%= ENV['USER'] %>
+        Created-By: Test Kitchen
+        Owner: <%= ENV['USER'] %>
+
+suites:
+  - name: default
+    run_list:
+      - role[bonusbits_ecs_cluster]
+    verifier:
+      inspec_tests:
+        - path: test/integration/inspec/profiles/bonusbits_ecs_cluster/
+        - name: bootstrap
+          git: https://github.com/bonusbits/inspec_bootstrap.git
+        - name: bonusbits_base
+          git: https://github.com/bonusbits/inspec_bonusbits_base.git
+      attributes:
+        chef_version: 12.18.31
+    provisioner:
+      client_rb:
+        environment: ecs_agent
+    includes: [ 'amazon' ]

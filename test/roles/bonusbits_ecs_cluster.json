@@ -1,0 +1,17 @@
+{
+    "name": "bonusbits_ecs_cluster",
+    "description": "Role",
+    "json_class": "Chef::Role",
+    "default_attributes": {},
+    "override_attributes": {
+        "bonusbits_ecs_cluster": {
+            "role": "ecs_agent"
+        }
+    },
+    "chef_type": "role",
+    "run_list": [
+        "recipe[bonusbits_ecs_cluster]"
+    ],
+    "env_run_lists": {
+    }
+}

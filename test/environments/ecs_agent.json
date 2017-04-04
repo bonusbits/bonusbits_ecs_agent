@@ -1,0 +1,19 @@
+{
+    "name": "ecs_agent",
+    "description": "Environment",
+    "cookbook_versions": {},
+    "json_class": "Chef::Environment",
+    "chef_type": "environment",
+    "default_attributes": {
+    },
+    "override_attributes": {
+        "bonusbits_base": {
+            "aws": {
+                "stack_name": "bonusbits-ecs-cluster-kitchen",
+                "logs_group_name": "bonusbits-ecs-cluster-kitchen"
+            }
+        },
+        "bonusbits_ecs_cluster": {
+        }
+    }
+}

@@ -1,0 +1,10 @@
+name: bonusbits_ecs_cluster
+title: InSpec ECS Cluster Profile
+maintainer: levon.becker.github@bonusbits.com
+copyright: Bonus Bits
+copyright_email: levon.becker.github@bonusbits.com
+license: MIT license
+summary: Check ECS Cluster Configuration
+version: 1.0.0
+supports:
+  - os-family: unix
