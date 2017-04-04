@@ -17,7 +17,7 @@ Deploy an Autoscaling group of EC2 Instances with ECS Agent installed and Joined
 Click this button to open AWS CloudFormation web console with the Template URL automatically entered.<br>
 [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?&templateURL=https://s3.amazonaws.com/bonusbits-public/cloudformation-templates/cookbooks/bonusbits-ecs-cluster.yml)
 
-# CloudFormation Template Details
+# CloudFormation
 Public S3 Link:<br> 
 [https://s3.amazonaws.com/bonusbits-public/cloudformation-templates/cookbooks/bonusbits-ecs-cluster.yml](https://s3.amazonaws.com/bonusbits-public/cloudformation-templates/cookbooks/bonusbits-ecs-cluster.yml)
 
