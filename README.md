@@ -50,6 +50,3 @@ The [CloudFormation Template](https://github.com/bonusbits/bonusbits_ecs_cluster
 2. Install ECS Agent
 3. Install and configure CloudWatch Logs Agent
 4. Create node info script
-
-# Tips
-1. If needed the instance size can be increased.
