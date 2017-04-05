@@ -29,9 +29,9 @@ provisioner:
 verifier:
   name: inspec
 #  format: doc
-#  format: junit
+  format: junit
 #  output: test/inspec/results/%{platform}_%{suite}_inspec.xml
-#  output: $CIRCLE_TEST_REPORTS/inspec/results/%{platform}_%{suite}_inspec.xml
+  output: $CIRCLE_TEST_REPORTS/inspec/results/%{platform}_%{suite}_inspec.xml
 
 platforms:
   - name: amazon
@@ -68,13 +68,15 @@ suites:
       - role[bonusbits_ecs_cluster]
     verifier:
       inspec_tests:
-        - path: test/integration/inspec/profiles/bonusbits_ecs_cluster/
         - name: bootstrap
           git: https://github.com/bonusbits/inspec_bootstrap.git
         - name: bonusbits_base
           git: https://github.com/bonusbits/inspec_bonusbits_base.git
+        - path: test/integration/inspec/profiles/bonusbits_ecs_cluster/
       attributes:
         chef_version: 12.18.31
+        inside_aws: true
+        configure_sudoers: true
     provisioner:
       client_rb:
         environment: ecs_agent
