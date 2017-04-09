@@ -225,62 +225,61 @@ Outputs:
 
 Mappings:
   RegionMap:
-    # Amazon Linux AMI 2016.09.0 was released on 2017-01-23
+    # Amazon Linux AMI 2017.03 was released on 2017-04-04
     # Red Hat Enterprise Linux AMI 6.9 was released on 2017-03-19
     # Red Hat Enterprise Linux AMI 7.3 was released on 2016-09-06
-
-    # N. Virginia
-    us-east-1:
-      amazon: ami-0b33d91d
-    # Ohio
-    us-east-2:
-      amazon: ami-0b33d91d
-    # Oregon
-    us-west-2:
-      amazon: ami-f173cc91
-      rhel6: ami-d61a92b6
-      rhel7: ami-38fd2558
-      win12r2: ami-09f47d69
-      win16: ami-94e26af4
-    # N. California
-    us-west-1:
-      amazon: ami-165a0876
-    # Canada
-    ca-central-1:
-      amazon: ami-ebed508f
-    # Ireland
-    eu-west-1:
-      amazon: ami-70edb016
-    # London
-    eu-west-2:
-      amazon: ami-f1949e95
-    # Frankfurt
-    eu-central-1:
-      amazon: ami-af0fc0c0
-    # Singapore
-    ap-southeast-1:
-      amazon: ami-dc9339bf
-    # Seoul
-    ap-northeast-1:
-      amazon: ami-dac312b4
-    # Tokyo
-    ap-northeast-2:
-      amazon: ami-56d4ad31
-    # Sydney
-    ap-southeast-2:
-      amazon: ami-1c47407f
-    # Mumbai
-    ap-south-1:
-      amazon: ami-f9daac96
-    # Sao Paulo
-    sa-east-1:
-      amazon: ami-80086dec
-    # Beijing
-    cn-north-1:
-      amazon: ami-e6c7108b
-    # GovCloud
-    us-gov-west-1:
-      amazon: ami-b21fa4d3
+      # N. Virginia
+      us-east-1:
+        amazon: ami-22ce4934
+      # Ohio
+      us-east-2:
+        amazon: ami-7bfcd81e
+      # Oregon
+      us-west-2:
+        amazon: ami-8ca83fec
+        rhel6: ami-d61a92b6
+        rhel7: ami-38fd2558
+        win12r2: ami-09f47d69
+        win16: ami-94e26af4
+      # N. California
+      us-west-1:
+        amazon: ami-9e247efe
+      # Canada
+      ca-central-1:
+        amazon: ami-8601bce2
+      # Ireland
+      eu-west-1:
+        amazon: ami-e5083683
+      # London
+      eu-west-2:
+        amazon: ami-11130775
+      # Frankfurt
+      eu-central-1:
+        amazon: ami-5b06d634
+      # Singapore
+      ap-southeast-1:
+        amazon: ami-a2bc03c1
+      # Seoul
+      ap-northeast-1:
+        amazon: ami-8369baed
+      # Tokyo
+      ap-northeast-2:
+        amazon: ami-859bbfe2
+      # Sydney
+      ap-southeast-2:
+        amazon: ami-8bf2fde8
+      # Mumbai
+      ap-south-1:
+        amazon: ami-815625ee
+      # Sao Paulo
+      sa-east-1:
+        amazon: ami-a97013c5
+      # Beijing
+      cn-north-1:
+        amazon: ami-b3d80ede
+      # GovCloud
+      us-gov-west-1:
+        amazon: ami-700a8f11
 
 Conditions:
   HasKeyPair: !Not [!Equals [ !Ref KeyPairName, '' ]]
@@ -558,9 +557,12 @@ Resources:
               cwd: /opt/chef-repo/cookbooks
               command: !Sub "git clone --branch ${CookbookVersion} https://github.com/bonusbits/${CookbookName}.git"
             04_berkshelf_cookbooks:
+              cwd: /opt/chef-repo
+              command: "/opt/chef/embedded/bin/gem install berkshelf --no-ri --no-rdoc"
+            05_berkshelf_cookbooks:
               cwd: !Sub /opt/chef-repo/cookbooks/${CookbookName}
-              command: !Sub "berks vendor /opt/chef-repo/cookbooks/"
-            05_deploy_databags:
+              command: "/opt/chef/embedded/bin/berks vendor /opt/chef-repo/cookbooks/"
+            06_deploy_databags:
               cwd: /opt/chef-repo
               command: !Sub "cp -R cookbooks/${CookbookName}/test/data_bags/${CookbookName} data_bags/"
           files:

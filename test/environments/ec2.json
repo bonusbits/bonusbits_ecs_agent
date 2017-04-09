@@ -1,5 +1,5 @@
 {
-    "name": "ecs_agent",
+    "name": "ec2",
     "description": "Environment",
     "cookbook_versions": {},
     "json_class": "Chef::Environment",

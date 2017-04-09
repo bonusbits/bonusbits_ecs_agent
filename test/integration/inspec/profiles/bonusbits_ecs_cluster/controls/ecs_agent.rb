@@ -1,20 +1,24 @@
-describe 'ECS Agent' do
-  it 'ecs agent installed' do
-    expect(package('ecs-init')).to be_installed
-  end
+inside_aws = attribute('inside_aws', default: false, description: 'Inside AWS')
 
-  it 'ecs agent service' do
-    expect(service('ecs')).to be_enabled
-    expect(service('ecs')).to be_running
-  end
+if os[:family] == 'amazon'
+  describe 'ECS Agent' do
+    it 'ecs agent installed' do
+      expect(package('ecs-init')).to be_installed
+    end
 
-  it 'has /etc/ecs/ecs.config' do
-    expect(file('/etc/ecs/ecs.config')).to exist
-    expect(file('/etc/ecs/ecs.config')).to be_owned_by('root')
-  end
+    it 'ecs agent service' do
+      expect(service('ecs')).to be_enabled
+      expect(service('ecs')).to be_running if inside_aws
+    end
 
-  it 'docker service' do
-    expect(service('docker')).to be_enabled
-    expect(service('docker')).to be_running
+    it 'has /etc/ecs/ecs.config' do
+      expect(file('/etc/ecs/ecs.config')).to exist
+      expect(file('/etc/ecs/ecs.config')).to be_owned_by('root')
+    end
+
+    it 'docker service' do
+      expect(service('docker')).to be_enabled
+      expect(service('docker')).to be_running if inside_aws
+    end
   end
 end

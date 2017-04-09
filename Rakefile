@@ -37,21 +37,30 @@ end
 # Integration Tests - Kitchen
 namespace :integration do
   require 'kitchen'
-  require 'inspec'
 
   # Load Specific Kitchen Configuration YAML
   def load_kitchen_config(yaml)
-    Kitchen::RakeTasks.new
-
     Kitchen.logger = Kitchen.default_file_logger
     kitchen_loader = Kitchen::Loader::YAML.new(local_config: yaml)
     Kitchen::Config.new(loader: kitchen_loader, log_level: :info)
   end
 
-  # Run Each Test Instance in All Test Suites from YAML
-  desc 'kitchen - ec2'
+  # Docker Test Suites
+  desc 'kitchen - docker - tests'
+  task :docker do
+    load_kitchen_config('.kitchen.yml').instances.each do |instance|
+      # puts "Instance Suite Name: (#{instance.suite.name})"
+      next unless instance.suite.name =~ /^docker_.*/
+      # puts 'It made it Next...'
+      instance.test(:always)
+    end
+  end
+
+  # EC2 Test Suites
+  desc 'kitchen - ec2 - test'
   task :ec2 do
     load_kitchen_config('.kitchen.yml').instances.each do |instance|
+      next unless instance.suite.name =~ /^ec2_.*/
       instance.test(:always)
     end
   end
@@ -64,5 +73,5 @@ desc 'Foodcritic & Rubocop'
 task style_only: %w(style:chef style:ruby)
 
 desc 'Circle CI Tasks'
-# task circleci: %w(style:chef style:ruby unit:circleci_rspec)
-task circleci: %w(style:chef style:ruby)
+# task circleci: %w(style:chef style:ruby unit:circleci_rspec integration:docker)
+task circleci: %w(style:chef style:ruby integration:docker)

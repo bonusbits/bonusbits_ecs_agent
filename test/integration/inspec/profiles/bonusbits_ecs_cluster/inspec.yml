@@ -8,3 +8,7 @@ summary: Check ECS Cluster Configuration
 version: 1.0.0
 supports:
   - os-family: unix
+supports:
+  - os-family: windows
+supports:
+  - platform: aws
