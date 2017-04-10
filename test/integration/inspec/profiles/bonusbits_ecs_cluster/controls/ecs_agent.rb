@@ -7,8 +7,8 @@ if os[:family] == 'amazon'
     end
 
     it 'ecs agent service' do
-      expect(service('ecs')).to be_enabled
-      expect(service('ecs')).to be_running if inside_aws
+      # expect(upstart_service('ecs')).to be_enabled
+      expect(upstart_service('ecs')).to be_running if inside_aws
     end
 
     it 'has /etc/ecs/ecs.config' do
