@@ -32,6 +32,10 @@
         "ParameterValue": "100"
     },
     {
+        "ParameterKey": "WarmEbs",
+        "ParameterValue": "false"
+    },
+    {
         "ParameterKey": "MinAutoScaleCount",
         "ParameterValue": "1"
     },
@@ -52,7 +56,7 @@
         "ParameterValue": "latest"
     },
     {
-        "ParameterKey": "ChefClientVersion",
-        "ParameterValue": "12.18.31"
+        "ParameterKey": "ChefDkVersion",
+        "ParameterValue": "1.2.22"
     }
 ]

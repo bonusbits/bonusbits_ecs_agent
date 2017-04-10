@@ -45,6 +45,12 @@ Parameters:
   VolumeSize:
     Type: String
     Default: 100
+  WarmEbs:
+    Type: String
+    Default: false
+    AllowedValues:
+    - true
+    - false
 
   # Autoscaling
   MinAutoScaleCount:
@@ -64,9 +70,9 @@ Parameters:
   CookbookVersion:
     Type: String
     Default: latest
-  ChefClientVersion:
+  ChefDkVersion:
     Type: String
-    Default: 12.18.31
+    Default: 1.2.22
 
 Metadata:
   TemplateAuthor: Levon Becker
@@ -95,6 +101,7 @@ Metadata:
           - InstanceType
           - OsType
           - VolumeSize
+          - WarmEbs
 
       # Autoscaling
       - Label:
@@ -110,7 +117,7 @@ Metadata:
         Parameters:
           - CookbookName
           - CookbookVersion
-          - ChefClientVersion
+          - ChefDkVersion
 
     ParameterLabels:
       # Ownership
@@ -136,6 +143,8 @@ Metadata:
         default: Agent OS
       VolumeSize:
         default: Volume Size
+      WarmEbs:
+        default: Warm EBS
 
       # Autoscaling
       MinAutoScaleCount:
@@ -150,8 +159,8 @@ Metadata:
         default: Cookbook Name
       CookbookVersion:
         default: Cookbook Version
-      ChefClientVersion:
-        default: Chef Client Version
+      ChefDkVersion:
+        default: ChefDK Version
 
 Outputs:
   # Ownership
@@ -183,6 +192,9 @@ Outputs:
   VolumeSize:
     Description: Cluster Instance Volume Size.
     Value: !Ref VolumeSize
+  WarmEbs:
+    Description: Warm EBS Volume.
+    Value: !Ref WarmEbs
 
   # Autoscaling
   MinAutoScaleCount:
@@ -197,8 +209,8 @@ Outputs:
     Value: !Ref CookbookName
   CookbookVersion:
     Value: !Ref CookbookVersion
-  ChefClientVersion:
-    Value: !Ref ChefClientVersion
+  ChefDkVersion:
+    Value: !Ref ChefDkVersion
 
   # Generated
   AMI:
@@ -268,6 +280,7 @@ Mappings:
 
 Conditions:
   HasKeyPair: !Not [!Equals [ !Ref KeyPairName, '' ]]
+  WarmEbsVolume: !Equals [ !Ref WarmEbs, 'true' ]
   AmazonHost: !Equals [ !Ref OsType, 'amazon' ]
   RhelHost: !Or [
     !Equals [ !Ref OsType, 'rhel6' ],
@@ -425,7 +438,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: !Ref MinAutoScaleCount
-        Timeout: PT15M
+        Timeout: PT30M
     UpdatePolicy:
       AutoScalingRollingUpdate:
         MinInstancesInService: !Ref MinAutoScaleCount
@@ -463,7 +476,7 @@ Resources:
         configSets:
           ec2_setup:
             - config_cfn
-            - install_chef_client
+            - install_chefdk
             - setup_chef_client
             - run_chef_client
             - warm_ebs
@@ -492,10 +505,10 @@ Resources:
                 files:
                   - /etc/cfn/cfn-hup.conf
                   - /etc/cfn/hooks.d/cfn-auto-reloader.conf
-        install_chef_client:
+        install_chefdk:
           commands:
-            01_install_chef_client:
-              command: !Sub "curl -L https://omnitruck.chef.io/install.sh | bash -s -- -v ${ChefClientVersion}"
+            01_install_chefdk:
+              command: !Sub "curl -L https://omnitruck.chef.io/install.sh | bash -s -- -P chefdk -v ${ChefDkVersion}"
         setup_chef_client:
           commands:
             01_mkdir_chef_repo:
@@ -506,15 +519,9 @@ Resources:
             03_download_cookbook:
               cwd: /opt/chef-repo/cookbooks
               command: !Sub "git clone --branch ${CookbookVersion} https://github.com/bonusbits/${CookbookName}.git"
-            04_berkshelf_cookbooks:
-              cwd: /opt/chef-repo
-              command: "/opt/chef/embedded/bin/gem install berkshelf --no-ri --no-rdoc"
-            05_berkshelf_cookbooks:
-              cwd: !Sub /opt/chef-repo/cookbooks/${CookbookName}
-              command: "/opt/chef/embedded/bin/berks vendor /opt/chef-repo/cookbooks/"
-            06_deploy_databags:
-              cwd: /opt/chef-repo
-              command: !Sub "cp -R cookbooks/${CookbookName}/test/data_bags/${CookbookName} data_bags/"
+            04_download_dependent_cookbooks:
+              cwd: !Sub "/opt/chef-repo/cookbooks/${CookbookName}"
+              command: !Sub "export HOME=/root && /opt/chefdk/embedded/bin/berks vendor /opt/chef-repo/cookbooks/"
           files:
             "/opt/chef-repo/client.rb":
               content: !Sub |
@@ -568,11 +575,12 @@ Resources:
         run_chef_client:
           commands:
             01_run_chef:
-              command: "/opt/chef/bin/chef-client -z -o role[ecs_agent] --environment aws --config /opt/chef-repo/client.rb --log_level info --force-formatter --chef-zero-port 8889"
+              command: "/opt/chefdk/bin/chef-client -z -o 'role[ecs_agent]' --environment 'aws' --config /opt/chef-repo/client.rb --log_level info --force-formatter --chef-zero-port 8889"
         warm_ebs:
+          Condition: WarmEbsVolume
           commands:
             01_warm_ebs:
-              command: "echo 'ACTION: Performing EBS Warming' && dd if=/dev/xvda of=/dev/xvda conv=notrunc bs=1M status=progress"
+              command: "#echo 'ACTION: Performing EBS Warming' && dd if=/dev/xvda of=/dev/xvda conv=notrunc bs=1M status=progress"
 
   ScaleUpPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
