@@ -1,0 +1,16 @@
+{
+    "name": "kitchen",
+    "description": "Environment",
+    "cookbook_versions": {},
+    "json_class": "Chef::Environment",
+    "chef_type": "environment",
+    "default_attributes": {
+    },
+    "override_attributes": {
+        "bonusbits_base": {
+            "cloudwatch_logs": {
+                "logs_group_name": "kitchen-bonusbits-ecs-cluster"
+            }
+        }
+    }
+}

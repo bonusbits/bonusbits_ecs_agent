@@ -13,17 +13,10 @@ Parameters:
   # Network
   VPC:
     Type: AWS::EC2::VPC::Id
-  SubnetIdList:
-    Description: Private Subnet ID List.
+  Subnets:
     Type: List<AWS::EC2::Subnet::Id>
-  InternalAccessSecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
-  RemoteSecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
-  RdsSecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
-  EfsSecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
+  SecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
 
   # Instance
   KeyPairName:
@@ -49,6 +42,9 @@ Parameters:
 #    - win12r2
 #    - win16 # TODO: Add support for other OSs
     Default: amazon
+  VolumeSize:
+    Type: String
+    Default: 100
 
   # Autoscaling
   MinAutoScaleCount:
@@ -88,11 +84,8 @@ Metadata:
           default: Network
         Parameters:
           - VPC
-          - SubnetIdList
-          - InternalAccessSecurityGroup
-          - RemoteSecurityGroup
-          - RdsSecurityGroup
-          - EfsSecurityGroup
+          - Subnets
+          - SecurityGroups
 
       # Instance
       - Label:
@@ -101,6 +94,7 @@ Metadata:
           - KeyPairName
           - InstanceType
           - OsType
+          - VolumeSize
 
       # Autoscaling
       - Label:
@@ -128,16 +122,10 @@ Metadata:
       # Network
       VPC:
         default: VPC ID
-      SubnetIdList:
-        default: Subnet ID List
-      InternalAccessSecurityGroup:
-        default: Internal Access Security Group
-      RemoteSecurityGroup:
-        default: Remote Security Group
-      RdsSecurityGroup:
-        default: RDS Security Group
-      EfsSecurityGroup:
-        default: EFS Security Group
+      Subnets:
+        default: Subnet List
+      SecurityGroups:
+        default: Security Group List
 
       # Instance
       KeyPairName:
@@ -146,6 +134,8 @@ Metadata:
         default: Instance Type
       OsType:
         default: Agent OS
+      VolumeSize:
+        default: Volume Size
 
       # Autoscaling
       MinAutoScaleCount:
@@ -175,16 +165,10 @@ Outputs:
   # Network
   VPC:
     Value: !Ref VPC
-  SubnetIdList:
-    Value: !Join [',', !Ref SubnetIdList]
-  InternalAccessSecurityGroup:
-    Value: !Ref InternalAccessSecurityGroup
-  RemoteSecurityGroup:
-    Value: !Ref RemoteSecurityGroup
-  RdsSecurityGroup:
-    Value: !Ref RdsSecurityGroup
-  EfsSecurityGroup:
-    Value: !Ref EfsSecurityGroup
+  Subnets:
+    Value: !Join [',', !Ref Subnets]
+  SecurityGroups:
+    Value: !Join [',', !Ref SecurityGroups]
 
   # Instance
   KeyPairName:
@@ -196,6 +180,9 @@ Outputs:
   OsType:
     Description: OS Type Used.
     Value: !Ref OsType
+  VolumeSize:
+    Description: Cluster Instance Volume Size.
+    Value: !Ref VolumeSize
 
   # Autoscaling
   MinAutoScaleCount:
@@ -214,11 +201,9 @@ Outputs:
     Value: !Ref ChefClientVersion
 
   # Generated
-  SecurityGroup:
-    Value: !Ref SecurityGroup
   AMI:
     Description: AMI Used.
-    Value: !FindInMap [ RegionMap, !Ref "AWS::Region", EBS ]
+    Value: !FindInMap [ RegionMap, !Ref "AWS::Region", !Ref "OsType" ]
   IAMRole:
     Description: IAM Instance Profile Role Created.
     Value: !Ref IamRole
@@ -399,40 +384,12 @@ Resources:
       Path: "/"
       Roles: [!Ref IamRole]
 
-  # Security Groups # TODO: Agent Port?
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow Web Traffic to Instance
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 0.0.0.0/0
-      SecurityGroupEgress:
-      - IpProtocol: "-1"
-        FromPort: "-1"
-        ToPort: "-1"
-        CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: !Ref "AWS::StackName"
-        - Key: Owner
-          Value: !Ref Owner
-        - Key: DeleteAfter
-          Value: !Ref DeleteAfter
-
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     DependsOn:
       - LaunchConfiguration
     Properties:
-      VPCZoneIdentifier: !Ref SubnetIdList
+      VPCZoneIdentifier: !Ref Subnets
       LaunchConfigurationName: !Ref LaunchConfiguration
       MinSize: !Ref MinAutoScaleCount
       MaxSize: !Ref MaxAutoScaleCount
@@ -475,21 +432,14 @@ Resources:
         MaxBatchSize: 1
 
   LaunchConfiguration:
-#    Condition: RhelFamily
     Type: AWS::AutoScaling::LaunchConfiguration
     DependsOn:
-      - SecurityGroup
       - IamInstanceProfile
       - EcsCluster
     Properties:
       AssociatePublicIpAddress: false
       ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", !Ref "OsType" ]
-      SecurityGroups:
-        - !Ref SecurityGroup
-        - !Ref InternalAccessSecurityGroup
-        - !Ref RemoteSecurityGroup
-        - !Ref RdsSecurityGroup
-        - !Ref EfsSecurityGroup
+      SecurityGroups: !Ref SecurityGroups
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref IamInstanceProfile
       KeyName: !If [ HasKeyPair, !Ref KeyPairName, !Ref "AWS::NoValue"]
@@ -499,7 +449,7 @@ Resources:
           Ebs:
             DeleteOnTermination: true
             VolumeType: gp2
-            VolumeSize: 8
+            VolumeSize: !Ref VolumeSize
       UserData:
         Fn::Base64:
           !Sub |
@@ -589,11 +539,13 @@ Resources:
                    "default_attributes": {
                    },
                    "override_attributes": {
-                       "bonusbits_ecs_cluster": {
-                           "aws": {
-                               "logs_group_name": "${AWS::StackName}",
-                               "ecs_cluster_name": "${EcsCluster}"
+                       "bonusbits_base": {
+                           "cloudwatch_logs": {
+                               "logs_group_name": "${CloudWatchLogsGroup}"
                            }
+                       },
+                       "bonusbits_ecs_cluster": {
+                           "ecs_cluster_name": "${EcsCluster}"
                        }
                    }
                }
@@ -605,9 +557,6 @@ Resources:
                   "json_class": "Chef::Role",
                   "default_attributes": {},
                   "override_attributes": {
-                      "bonusbits_ecs_cluster": {
-                          "role": "ecs_agent"
-                      }
                   },
                   "chef_type": "role",
                   "run_list": [

@@ -56,7 +56,7 @@ suites:
       roles_path: test/roles
       environments_path: test/environments
       client_rb:
-        environment: ec2
+        environment: kitchen
     driver:
       name: ec2
       associate_public_ip: <%= ENV['AWS_PUBLIC_IP'] %>
@@ -97,7 +97,7 @@ suites:
       roles_path: test/roles
       environments_path: test/environments
       client_rb:
-        environment: docker
+        environment: kitchen
     driver:
       name: docker
       use_sudo: false # For Native Docker on Mac. Remove/Comment if using Toolbox (docker-machine)

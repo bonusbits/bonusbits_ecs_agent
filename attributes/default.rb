@@ -8,8 +8,8 @@ default['bonusbits_ecs_cluster']['cluster_name'] = 'kitchen-bonusbits-ecs-cluste
 # Debug
 message_list = [
   '',
-  '** ECS Agent **',
-  "INFO: ECS Cluster Name        (#{node['bonusbits_ecs_cluster']['cluster_name']})"
+  '** Default **',
+  "ECS Cluster Name              (#{node['bonusbits_ecs_cluster']['cluster_name']})"
 ]
 message_list.each do |message|
   Chef::Log.warn(message)

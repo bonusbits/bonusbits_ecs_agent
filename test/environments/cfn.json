@@ -1,5 +1,5 @@
 {
-    "name": "ec2",
+    "name": "kitchen",
     "description": "Environment",
     "cookbook_versions": {},
     "json_class": "Chef::Environment",
@@ -9,10 +9,11 @@
     "override_attributes": {
         "bonusbits_base": {
             "cloudwatch_logs": {
-                "logs_group_name": "kitchen-bonusbits-ecs-cluster"
+                "logs_group_name": "${CloudWatchLogsGroup}"
             }
         },
         "bonusbits_ecs_cluster": {
+            "ecs_cluster_name": "${EcsCluster}"
         }
     }
 }
