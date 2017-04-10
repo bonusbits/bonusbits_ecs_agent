@@ -52,4 +52,4 @@ The [CloudFormation Template](https://github.com/bonusbits/bonusbits_ecs_cluster
 4. Create node info script
 
 # Cookbook Dependencies
-![](images/cookbook_dep.png)
+![](images/cookbook_dependencies.png)
