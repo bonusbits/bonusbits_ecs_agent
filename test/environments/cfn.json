@@ -13,7 +13,7 @@
             }
         },
         "bonusbits_ecs_cluster": {
-            "ecs_cluster_name": "${EcsCluster}"
+            "cluster_name": "${EcsCluster}"
         }
     }
 }
