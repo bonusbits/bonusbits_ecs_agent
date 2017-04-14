@@ -63,11 +63,11 @@ namespace :integration do
   end
 end
 
-desc 'Foodcritic, Rubocop & ChefSpec'
-task default: %w(style:chef style:ruby unit:rspec)
+desc 'Foodcritic & Rubocop'
+task default: %w(style:chef style:ruby)
 
 desc 'Foodcritic & Rubocop'
-task style_only: %w(style:chef style:ruby)
+task style_tasks: %w(style:chef style:ruby)
 
 desc 'Circle CI Tasks'
 # task circleci: %w(style:chef style:ruby unit:circleci_rspec integration:docker)
