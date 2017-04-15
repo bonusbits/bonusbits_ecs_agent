@@ -535,6 +535,9 @@ Resources:
                 role_path '/opt/chef-repo/roles'
                 chef_server_url 'http://127.0.0.1:8889'
                 encrypted_data_bag_secret '/opt/chef-repo/encrypted_data_bag_secret'
+                log_level :info
+                log_location '/var/log/chef-client.log'
+                verify_api_cert false
             "/opt/chef-repo/environments/aws.json":
               content: !Sub |
                {
@@ -556,26 +559,10 @@ Resources:
                        }
                    }
                }
-            "/opt/chef-repo/roles/ecs_agent.json":
-              content: !Sub |
-                {
-                  "name": "ecs_agent",
-                  "description": "Role",
-                  "json_class": "Chef::Role",
-                  "default_attributes": {},
-                  "override_attributes": {
-                  },
-                  "chef_type": "role",
-                  "run_list": [
-                      "recipe[${CookbookName}]"
-                  ],
-                  "env_run_lists": {
-                  }
-                }
         run_chef_client:
           commands:
             01_run_chef:
-              command: "/opt/chefdk/bin/chef-client -z -o 'role[ecs_agent]' --environment 'aws' --config /opt/chef-repo/client.rb --log_level info --force-formatter --chef-zero-port 8889"
+              command: !Sub "/opt/chefdk/bin/chef-client -z -o 'recipe[${CookbookName}]' --environment 'aws' --config /opt/chef-repo/client.rb --log_level info --force-formatter --chef-zero-port 8889"
         warm_ebs:
           Condition: WarmEbsVolume
           commands:
